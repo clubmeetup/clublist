@@ -3,6 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <title>List of Clubs</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      padding: 20px;
+    }
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px; /* Increased padding */
+      border-bottom: 1px solid #ddd;
+      word-wrap: break-word; /* Ensures text wraps to next line */
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .description {
+      max-width: 250px; /* Adjust as needed */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer; /* Indicates the text is clickable */
+    }
+    .expanded {
+      white-space: normal; /* Allows text to wrap when expanded */
+      overflow: visible;
+    }
+    @media screen and (max-width: 600px) {
+      table {
+        display: block;
+        overflow-x: auto; /* Enables horizontal scrolling on small devices */
+      }
+    }
+  </style>
 </head>
 <body>
 <h1>List of Clubs</h1>
@@ -25,19 +73,33 @@
 <script>
   // Function to fetch CSV file and generate HTML table
   async function loadClubsData() {
-    const response = await fetch('UH Mānoa Approved RIOs - 2023-2024 UHM Approved RIOs.csv')
+    const response = await fetch('UH Mānoa Approved RIOs - 2023-2024 UHM Approved RIOs.csv');
     const data = await response.text();
     const tableBody = document.querySelector("#clubsTable tbody");
 
     // Split CSV into lines
-    const lines = data.split('\n').slice(1); // Adjust slice as necessary to skip headers or initial lines
+    const lines = data.split('\n').slice(1);
 
     lines.forEach(line => {
-      const cols = line.split(','); // Adjust as necessary for your CSV structure
+      // Regex to handle fields that contain commas inside quotes
+      const regex = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^\",]+)/g;
+      let cols = [];
+      let match;
+      while ((match = regex.exec(line)) !== null) {
+        // Remove leading/trailing quotes and unescape double double quotes
+        cols.push(match[1] ? match[1].replace(/\"\"/g, '\"') : match[2]);
+      }
+
       const row = document.createElement('tr');
-      cols.forEach(col => {
+      cols.forEach((col, index) => {
         const td = document.createElement('td');
         td.textContent = col.trim();
+        if (index === 5) { // Assuming the Description is the 6th column
+          td.classList.add('description');
+          td.onclick = function() {
+            this.classList.toggle('expanded');
+          };
+        }
         row.appendChild(td);
       });
       tableBody.appendChild(row);
