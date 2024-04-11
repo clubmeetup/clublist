@@ -50,6 +50,10 @@
         overflow-x: auto; /* Enables horizontal scrolling on small devices */
       }
     }
+    #pagination {
+      text-align: center;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -70,31 +74,28 @@
   </tbody>
 </table>
 
+<div id="pagination">
+  <button id="prevPage">Previous</button>
+  <span id="currentPage">1</span>
+  <button id="nextPage">Next</button>
+</div>
+
 <script>
-  // Function to fetch CSV file and generate HTML table
-  async function loadClubsData() {
-    const response = await fetch('UH Mānoa Approved RIOs - 2023-2024 UHM Approved RIOs.csv');
-    const data = await response.text();
+  let currentChunk = 0;
+  const chunkSize = 10; // Number of clubs to display per page
+  let clubsData = []; // Will hold the parsed CSV data
+
+  // Function to display a chunk of clubs
+  function displayClubs(chunk) {
     const tableBody = document.querySelector("#clubsTable tbody");
-
-    // Split CSV into lines
-    const lines = data.split('\n').slice(1);
-
-    lines.forEach(line => {
-      // Regex to handle fields that contain commas inside quotes
-      const regex = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^\",]+)/g;
-      let cols = [];
-      let match;
-      while ((match = regex.exec(line)) !== null) {
-        // Remove leading/trailing quotes and unescape double double quotes
-        cols.push(match[1] ? match[1].replace(/\"\"/g, '\"') : match[2]);
-      }
-
+    tableBody.innerHTML = ''; // Clear the table
+    const slice = clubsData.slice(chunk * chunkSize, (chunk + 1) * chunkSize);
+    slice.forEach(rowData => {
       const row = document.createElement('tr');
-      cols.forEach((col, index) => {
+      rowData.forEach((cellData, index) => {
         const td = document.createElement('td');
-        td.textContent = col.trim();
-        if (index === 5) { // Assuming the Description is the 6th column
+        td.textContent = cellData.trim();
+        if (index === 5) {
           td.classList.add('description');
           td.onclick = function() {
             this.classList.toggle('expanded');
@@ -104,6 +105,40 @@
       });
       tableBody.appendChild(row);
     });
+    document.getElementById('currentPage').textContent = currentChunk + 1;
+  }
+
+  // Event listeners for pagination buttons
+  document.getElementById('prevPage').addEventListener('click', function() {
+    if (currentChunk > 0) {
+      currentChunk--;
+      displayClubs(currentChunk);
+    }
+  });
+
+  document.getElementById('nextPage').addEventListener('click', function() {
+    if ((currentChunk + 1) * chunkSize < clubsData.length) {
+      currentChunk++;
+      displayClubs(currentChunk);
+    }
+  });
+
+  // Function to fetch CSV file and generate HTML table
+  async function loadClubsData() {
+    const response = await fetch('UH Mānoa Approved RIOs - 2023-2024 UHM Approved RIOs.csv');
+    const data = await response.text();
+    const lines = data.split('\n').slice(1);
+
+    lines.forEach(line => {
+      const regex = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^\",]+)/g;
+      let cols = [];
+      let match;
+      while ((match = regex.exec(line)) !== null) {
+        cols.push(match[1] ? match[1].replace(/\"\"/g, '\"') : match[2]);
+      }
+      clubsData.push(cols);
+    });
+    displayClubs(currentChunk);
   }
 
   // Call the function when the page loads
