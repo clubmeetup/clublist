@@ -22,9 +22,9 @@
     }
     th, td {
       text-align: left;
-      padding: 12px; /* Increased padding */
+      padding: 12px;
       border-bottom: 1px solid #ddd;
-      word-wrap: break-word; /* Ensures text wraps to next line */
+      word-wrap: break-word;
     }
     th {
       background-color: #4CAF50;
@@ -34,20 +34,20 @@
       background-color: #f2f2f2;
     }
     .description {
-      max-width: 250px; /* Adjust as needed */
+      max-width: 250px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      cursor: pointer; /* Indicates the text is clickable */
+      cursor: pointer;
     }
     .expanded {
-      white-space: normal; /* Allows text to wrap when expanded */
+      white-space: normal;
       overflow: visible;
     }
     @media screen and (max-width: 600px) {
       table {
         display: block;
-        overflow-x: auto; /* Enables horizontal scrolling on small devices */
+        overflow-x: auto;
       }
     }
     #pagination {
@@ -58,6 +58,9 @@
 </head>
 <body>
 <h1>List of Clubs</h1>
+<div id="searchContainer" style="text-align: center; margin: 20px;">
+  <input type="text" id="searchBar" placeholder="Search clubs..." style="width: 80%; padding: 10px; font-size: 16px;">
+</div>
 <table id="clubsTable">
   <thead>
   <tr>
@@ -88,7 +91,7 @@
   // Function to display a chunk of clubs
   function displayClubs(chunk) {
     const tableBody = document.querySelector("#clubsTable tbody");
-    tableBody.innerHTML = ''; // Clear the table
+    tableBody.innerHTML = '';
     const slice = clubsData.slice(chunk * chunkSize, (chunk + 1) * chunkSize);
     slice.forEach(rowData => {
       const row = document.createElement('tr');
@@ -141,7 +144,35 @@
     displayClubs(currentChunk);
   }
 
-  // Call the function when the page loads
+  // Search functionality
+  document.getElementById('searchBar').addEventListener('input', function() {
+    const searchQuery = this.value.toLowerCase();
+    const filteredClubs = clubsData.filter(row =>
+        row.some(cell => cell.toLowerCase().includes(searchQuery))
+    );
+    displayFilteredClubs(filteredClubs);
+  });
+
+  function displayFilteredClubs(filteredClubs) {
+    const tableBody = document.querySelector("#clubsTable tbody");
+    tableBody.innerHTML = '';
+    filteredClubs.forEach(rowData => {
+      const row = document.createElement('tr');
+      rowData.forEach((cellData, index) => {
+        const td = document.createElement('td');
+        td.textContent = cellData.trim();
+        if (index === 5) {
+          td.classList.add('description');
+          td.onclick = function() {
+            this.classList.toggle('expanded');
+          };
+        }
+        row.appendChild(td);
+      });
+      tableBody.appendChild(row);
+    });
+  }
+
   window.addEventListener('load', loadClubsData);
 </script>
 </body>
