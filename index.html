@@ -98,7 +98,7 @@
       rowData.forEach((cellData, index) => {
         const td = document.createElement('td');
         td.textContent = cellData.trim();
-        if (index === 5) { // Description column interaction
+        if (index === 5) {
           td.classList.add('description');
           td.onclick = function() {
             this.classList.toggle('expanded');
@@ -144,11 +144,11 @@
     displayClubs(currentChunk);
   }
 
-  // Update to search functionality to filter by category
+  // Search functionality
   document.getElementById('searchBar').addEventListener('input', function() {
     const searchQuery = this.value.toLowerCase();
     const filteredClubs = clubsData.filter(row =>
-        row[3].toLowerCase().includes(searchQuery) // Assuming the 4th column is 'Category'
+        row.some(cell => cell.toLowerCase().includes(searchQuery))
     );
     displayFilteredClubs(filteredClubs);
   });
@@ -175,6 +175,5 @@
 
   window.addEventListener('load', loadClubsData);
 </script>
-
 </body>
 </html>
