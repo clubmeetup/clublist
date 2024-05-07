@@ -33,7 +33,7 @@
     tr:nth-child(even) {
       background-color: #f2f2f2;
     }
-    .description {
+    .description, .ratings {
       max-width: 250px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -43,6 +43,13 @@
     .expanded {
       white-space: normal;
       overflow: visible;
+    }
+    .rating-display, .rate-club {
+      margin-top: 5px;
+    }
+    .rate-club select, .rate-club button {
+      padding: 3px;
+      margin-right: 5px;
     }
     @media screen and (max-width: 600px) {
       table {
@@ -74,6 +81,7 @@
     <th>Category</th>
     <th>Contact Email</th>
     <th>Description</th>
+    <th>Ratings</th>
   </tr>
   </thead>
   <tbody>
@@ -102,11 +110,26 @@
       rowData.forEach((cellData, index) => {
         const td = document.createElement('td');
         td.textContent = cellData.trim();
-        if (index === 5) {
+        if (index === 5) {  // Description column
           td.classList.add('description');
           td.onclick = function() {
             this.classList.toggle('expanded');
           };
+        }
+        if (index === 6) {  // Rating column
+          td.innerHTML = `<div class="rating-display">Rating: <span class="rating-value">0</span> / 5</div>
+                          <div class="rate-club">
+                            Rate:
+                            <select class="rating-input">
+                              <option value="1">1</option>
+                              <option value="2">2</option>
+                              <option value="3">3</option>
+                              <option value="4">4</option>
+                              <option value="5">5</option>
+                            </select>
+                            <button onclick="submitRating(this)">Submit</button>
+                          </div>`;
+          td.classList.add('ratings');
         }
         row.appendChild(td);
       });
@@ -195,6 +218,19 @@
       });
       tableBody.appendChild(row);
     });
+  }
+
+  // Function to handle rating submission
+  function submitRating(buttonElement) {
+    const ratingInput = buttonElement.previousElementSibling;
+    const ratingValue = ratingInput.value;
+    const ratingDisplay = buttonElement.parentElement.previousElementSibling.children[0].children[1];
+
+    // Update the display with the new rating
+    ratingDisplay.textContent = ratingValue;
+
+    // Ideally, here you would also send this rating to the server to be saved
+    console.log(`Rated ${ratingValue} stars`);
   }
 
   window.addEventListener('load', loadClubsData);
