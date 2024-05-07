@@ -105,7 +105,7 @@
     const tableBody = document.querySelector("#clubsTable tbody");
     tableBody.innerHTML = '';
     const slice = clubsData.slice(chunk * chunkSize, (chunk + 1) * chunkSize);
-    slice.forEach(rowData => {
+    slice.forEach((rowData, rowIndex) => {
       const row = document.createElement('tr');
       rowData.forEach((cellData, index) => {
         const td = document.createElement('td');
@@ -123,7 +123,7 @@
                             <select class="rating-input">
                               <option value="1">1</option>
                               <option value="2">2</option>
-                              <option value="3">3</option>
+                              <option value="3">3</option
                               <option value="4">4</option>
                               <option value="5">5</option>
                             </select>
@@ -222,15 +222,24 @@
 
   // Function to handle rating submission
   function submitRating(buttonElement) {
-    const ratingInput = buttonElement.previousElementSibling;
+    const td = buttonElement.closest('td');
+    const ratingInput = td.querySelector('.rating-input');
     const ratingValue = ratingInput.value;
-    const ratingDisplay = buttonElement.parentElement.previousElementSibling.children[0].children[1];
+    const clubId = buttonElement.closest('tr').getAttribute('data-club-id'); // Make sure each row has a unique `data-club-id` attribute
 
-    // Update the display with the new rating
-    ratingDisplay.textContent = ratingValue;
-
-    // Ideally, here you would also send this rating to the server to be saved
-    console.log(`Rated ${ratingValue} stars`);
+    fetch('/rate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ club_id: clubId, rating: ratingValue })
+    })
+        .then(response => response.json())
+        .then(data => {
+          alert('Rating submitted: ' + data.rating);
+          td.querySelector('.rating-value').textContent = data.rating; // Update the rating display
+        })
+        .catch(error => console.error('Error:', error));
   }
 
   window.addEventListener('load', loadClubsData);
