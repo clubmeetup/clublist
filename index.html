@@ -47,7 +47,7 @@
     .rating-display, .rate-club {
       margin-top: 5px;
     }
-    .rate-club select, .rate-club button {
+    .rate-club select {
       padding: 3px;
       margin-right: 5px;
     }
@@ -120,14 +120,13 @@
           td.innerHTML = `<div class="rating-display">Rating: <span class="rating-value">0</span> / 5</div>
                           <div class="rate-club">
                             Rate:
-                            <select class="rating-input">
+                            <select class="rating-input" onchange="updateRating(this)">
                               <option value="1">1</option>
                               <option value="2">2</option>
-                              <option value="3">3</option
+                              <option value="3">3</option>
                               <option value="4">4</option>
                               <option value="5">5</option>
                             </select>
-                            <button onclick="submitRating(this)">Submit</button>
                           </div>`;
           td.classList.add('ratings');
         }
@@ -220,26 +219,11 @@
     });
   }
 
-  // Function to handle rating submission
-  function submitRating(buttonElement) {
-    const td = buttonElement.closest('td');
-    const ratingInput = td.querySelector('.rating-input');
-    const ratingValue = ratingInput.value;
-    const clubId = buttonElement.closest('tr').getAttribute('data-club-id'); // Make sure each row has a unique `data-club-id` attribute
-
-    fetch('/rate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ club_id: clubId, rating: ratingValue })
-    })
-        .then(response => response.json())
-        .then(data => {
-          alert('Rating submitted: ' + data.rating);
-          td.querySelector('.rating-value').textContent = data.rating; // Update the rating display
-        })
-        .catch(error => console.error('Error:', error));
+  // Function to update the rating display
+  function updateRating(selectElement) {
+    const ratingValue = selectElement.value;
+    const ratingDisplay = selectElement.closest('.ratings').querySelector('.rating-value');
+    ratingDisplay.textContent = ratingValue;
   }
 
   window.addEventListener('load', loadClubsData);
