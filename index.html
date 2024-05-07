@@ -90,7 +90,7 @@
 <script>
   let currentChunk = 0;
   const chunkSize = 15; // Number of clubs to display per page
-  let clubsData = []; // Will hold the data fetched from Google Sheets
+  let clubsData = []; // Will hold the parsed CSV data
 
   // Function to display a chunk of clubs
   function displayClubs(chunk) {
@@ -101,8 +101,8 @@
       const row = document.createElement('tr');
       rowData.forEach((cellData, index) => {
         const td = document.createElement('td');
-        td.textContent = cellData;
-        if (index === 5) { // Assuming description is in the 6th column
+        td.textContent = cellData.trim();
+        if (index === 5) {
           td.classList.add('description');
           td.onclick = function() {
             this.classList.toggle('expanded');
@@ -130,10 +130,21 @@
     }
   });
 
-  // Function to fetch data from Google Sheets
+  // Function to fetch CSV file and generate HTML table
   async function loadClubsData() {
-    const response = await fetch('https://docs.google.com/spreadsheets/d/1vK_ixq3a86uXjHXy9oNnyYHwAvyU9smNPKuJU6OYd-Q/edit#gid=279493055'); // Replace with your web app URL
-    clubsData = await response.json();
+    const response = await fetch('UH Mānoa Approved RIOs - 2023-2024 UHM Approved RIOs.csv');
+    const data = await response.text();
+    const lines = data.split('\n').slice(1);
+
+    lines.forEach(line => {
+      const regex = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^\",]+)/g;
+      let cols = [];
+      let match;
+      while ((match = regex.exec(line)) !== null) {
+        cols.push(match[1] ? match[1].replace(/\"\"/g, '\"') : match[2]);
+      }
+      clubsData.push(cols);
+    });
     displayClubs(currentChunk);
     populateCategoryDropdown();
   }
@@ -145,7 +156,6 @@
       categorySet.add(row[3]); // Assuming the 4th column contains the category
     });
     const categoryDropdown = document.getElementById('categoryFilter');
-    categoryDropdown.innerHTML = '<option value="">All Categories</option>'; // Reset categories
     categorySet.forEach(category => {
       const option = document.createElement('option');
       option.value = option.textContent = category;
@@ -153,7 +163,7 @@
     });
   }
 
-  // Search and filter functionality
+  // Search functionality
   document.getElementById('searchBar').addEventListener('input', filterDisplay);
   document.getElementById('categoryFilter').addEventListener('change', filterDisplay);
 
@@ -162,7 +172,7 @@
     const selectedCategory = document.getElementById('categoryFilter').value;
     const filteredClubs = clubsData.filter(row =>
         row.some(cell => cell.toLowerCase().includes(searchQuery)) &&
-        (row[3].toLowerCase() === selectedCategory.toLowerCase() || selectedCategory === "")
+        (row[3] === selectedCategory || selectedCategory === "")
     );
     displayFilteredClubs(filteredClubs);
   }
@@ -174,8 +184,8 @@
       const row = document.createElement('tr');
       rowData.forEach((cellData, index) => {
         const td = document.createElement('td');
-        td.textContent = cellData;
-        if (index === 5) { // Assuming description is in the 6th column
+        td.textContent = cellData.trim();
+        if (index === 5) {
           td.classList.add('description');
           td.onclick = function() {
             this.classList.toggle('expanded');
